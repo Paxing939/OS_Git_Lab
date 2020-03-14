@@ -21,8 +21,8 @@ public:
     ~LogDuration() {
         auto end = std::chrono::steady_clock::now();
 
-        std::cerr << hint_ << ": "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin_).count()
+        std::cout << hint_ << ": "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(end - begin_).count()
                   << "ms" << '\n';
     }
 

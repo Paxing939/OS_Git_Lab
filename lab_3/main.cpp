@@ -7,7 +7,8 @@
 
 #include "log_duration.h"
 
-void PrintMatrix(const std::vector<std::vector<double>> &matrix) {
+template <typename T>
+void PrintMatrix(const std::vector<std::vector<T>> &matrix) {
     for (const auto &vec : matrix) {
         for (const auto &x_ : vec) {
             std::cout << std::setw(7) << std::setprecision(2) << std::left << x_ << " ";
@@ -181,22 +182,29 @@ int main() {
     int k;
     ReadDataFromFile(a, b, k);
 
-    c = SequentialProduct(a, b);
-    PrintMatrix(c);
-    std::cout << "\n\n";
+    {
+        LOG_DURATION("SequentialProduct time");
+        c = SequentialProduct(a, b);
+    }
+    PrintMatrix<double>(c);
 
-    c = FirstParallelProduct(a, b, k);
-    PrintMatrix(c);
-    std::cout << "\n";
+    {
+        LOG_DURATION("FirstParallelProduct time");
+        c = FirstParallelProduct(a, b, k);
+    }
+    PrintMatrix<double>(c);
 
-    c = SecondParallelProduct(a, b, k);
-    PrintMatrix(c);
-    std::cout << "\n";
+    {
+        LOG_DURATION("SecondParallelProduct time");
+        c = SecondParallelProduct(a, b, k);
+    }
+    PrintMatrix<double>(c);
 
-
-    c = ThirdParallelProduct(a, b, k);
-    PrintMatrix(c);
-    std::cout << "\n";
+    {
+        LOG_DURATION("ThirdParallelProduct time");
+        c = ThirdParallelProduct(a, b, k);
+    }
+    PrintMatrix<double>(c);
 
     return 0;
 }
