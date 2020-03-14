@@ -7,16 +7,16 @@
 
 #include "log_duration.h"
 
-void PrintMatrix(const std::vector<std::vector<double>>& matrix) {
-    for (const auto& vec : matrix) {
-        for (const auto& x_ : vec) {
+void PrintMatrix(const std::vector<std::vector<double>> &matrix) {
+    for (const auto &vec : matrix) {
+        for (const auto &x_ : vec) {
             std::cout << std::setw(7) << std::setprecision(2) << std::left << x_ << " ";
         }
         std::cout << std::endl;
     }
 }
 
-void ReadDataFromFile(std::vector<std::vector<double>> &a, std::vector<std::vector<double>> &b, int& k) {
+void ReadDataFromFile(std::vector<std::vector<double>> &a, std::vector<std::vector<double>> &b, int &k) {
     std::ifstream reader("input.txt");
     int A, B, C;
     reader >> A >> B >> C >> k;
@@ -113,7 +113,7 @@ void SecondThreadFunction(const std::vector<std::vector<double>> &a, const std::
 }
 
 std::vector<std::vector<double>> SecondParallelProduct(const std::vector<std::vector<double>> &a,
-                                                      const std::vector<std::vector<double>> &b, int num_flows) {
+                                                       const std::vector<std::vector<double>> &b, int num_flows) {
     int A = a.size(), B = a[0].size(), C = b[0].size();
     if (B != b.size()) {
         throw std::runtime_error("Incorrect dimensions of matrices!");
@@ -135,15 +135,15 @@ std::vector<std::vector<double>> SecondParallelProduct(const std::vector<std::ve
 }
 
 void ThirdThreadFunction(const std::vector<std::vector<double>> &a, const std::vector<std::vector<double>> &b,
-                          std::vector<std::vector<double>> &result, int num_flows, int index) {
+                         std::vector<std::vector<double>> &result, int num_flows, int i_index, int j_index, int k_index) {
     int A = a.size(), B = a[0].size(), C = b[0].size();
     if (B != b.size()) {
         throw std::runtime_error("Incorrect dimensions of matrices!");
     }
 
-    for (int i = 0; i < A; i++) {
-        for (int j = 0; j < C; j++) {
-            for (int k = index * B / num_flows; k < (index + 1) * B / num_flows; k++) {
+    for (int i = i_index * A / num_flows; i < (i_index + 1) * A / num_flows; i++) {
+        for (int j = j_index * C / num_flows; j < (j_index + 1) * C / num_flows; j++) {
+            for (int k = k_index * B / num_flows; k < (k_index + 1) * B / num_flows; k++) {
                 result[i][j] += a[i][k] * b[k][j];
             }
         }
@@ -151,7 +151,7 @@ void ThirdThreadFunction(const std::vector<std::vector<double>> &a, const std::v
 }
 
 std::vector<std::vector<double>> ThirdParallelProduct(const std::vector<std::vector<double>> &a,
-                                                       const std::vector<std::vector<double>> &b, int num_flows) {
+                                                      const std::vector<std::vector<double>> &b, int num_flows) {
     int A = a.size(), B = a[0].size(), C = b[0].size();
     if (B != b.size()) {
         throw std::runtime_error("Incorrect dimensions of matrices!");
@@ -162,11 +162,15 @@ std::vector<std::vector<double>> ThirdParallelProduct(const std::vector<std::vec
     std::vector<std::thread> threads(num_flows);
 
     for (int i = 0; i < num_flows; i++) {
-        threads[i] = std::thread(ThirdThreadFunction, std::ref(a), std::ref(b), std::ref(result), num_flows, i);
-    }
+        for (int j = 0; j < num_flows; j++) {
+            for (int k = 0; k < num_flows; k++) {
+                threads[k] = std::thread(ThirdThreadFunction, std::ref(a), std::ref(b), std::ref(result), num_flows, i, j, k);
+            }
 
-    for (int j = 0; j < num_flows; j++) {
-        threads[j].join();
+            for (int k = 0; k < num_flows; k++) {
+                threads[k].join();
+            }
+        }
     }
 
     return result;
